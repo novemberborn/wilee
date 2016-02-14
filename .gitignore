@@ -3,7 +3,7 @@ node_modules
 
 /account
 /account.pub
-/cert.csr
+/csr.der
 /cert.key
 
 /lib

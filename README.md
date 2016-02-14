@@ -10,3 +10,9 @@ Generating the certificate private key:
 ```shell
 openssl genrsa -out cert.key 2048
 ```
+
+Generate the certificate signing request in DER form:
+
+```shell
+openssl req -new -sha256 -key cert.key -outform der -out csr.der
+```
