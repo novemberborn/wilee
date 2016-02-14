@@ -2,6 +2,7 @@ import { request } from 'https'
 import { parse as parseUrl } from 'url'
 
 import getStream from 'get-stream'
+import { utc } from 'moment'
 import parseLinkHeader from 'parse-link-header'
 
 function extractLinks (headers) {
@@ -246,6 +247,75 @@ export default class Server {
       return new Promise((resolve) => {
         setTimeout(() => resolve(), 10000)
       }).then(() => this.pollPendingAuthorization(authzUrl))
+    })
+  }
+
+  async issue (csr, notAfter = utc().add(90, 'days'), notBefore = utc()) {
+    const { hostname, port, path } = parseUrl((await this.directory)['new-cert'])
+
+    const nonce = await this.nonce
+    return new Promise((resolve, reject) => {
+      request({
+        method: 'POST',
+        hostname,
+        port,
+        path,
+        headers: { 'content-type': 'application/pkix-cert' }
+      }).on('error', reject).on('response', (res) => {
+        const { statusCode, headers } = res
+        const links = extractLinks(headers)
+        links.self = headers.location
+
+        const encoding = headers['content-type'] === 'application/pkix-cert' ? 'base64' : 'utf8'
+        return getStream(res, { encoding }).then((payload) => {
+          resolve({
+            links,
+            payload,
+            statusCode
+          })
+        })
+      }).end(this._account.sign({
+        resource: 'new-cert',
+        csr,
+        notBefore: utc(notBefore).format(),
+        notAfter: utc(notAfter).format()
+      }, nonce))
+    }).then((result) => {
+      const { statusCode } = result
+      if (statusCode === 201) return result
+
+      throw Object.assign(new Error('Could not issue certificate'), result)
+    })
+  }
+
+  async getCert (certUrl) {
+    const { hostname, port, path } = parseUrl(certUrl)
+    return new Promise((resolve, reject) => {
+      request({
+        method: 'GET',
+        hostname,
+        port,
+        path,
+        headers: { 'content-type': 'application/pkix-cert' }
+      }).on('error', reject).on('response', (res) => {
+        const { statusCode, headers } = res
+        const links = extractLinks(headers)
+        links.self = certUrl
+
+        const encoding = headers['content-type'] === 'application/pkix-cert' ? 'base64' : 'utf8'
+        return getStream(res, { encoding }).then((payload) => {
+          resolve({
+            links,
+            payload,
+            statusCode
+          })
+        })
+      }).end()
+    }).then((result) => {
+      const { statusCode } = result
+      if (statusCode === 200) return result
+
+      throw Object.assign(new Error('Could not issue certificate'), result)
     })
   }
 }

@@ -1,4 +1,5 @@
 import { createHash } from 'crypto'
+import { readFileSync } from 'fs'
 import { inspect } from 'util'
 
 import { urlencode as base64url } from 'sixtyfour'
@@ -64,4 +65,20 @@ Press ENTER to continue.`)
     console.log('Waiting for status to change')
     logResult(await server.pollPendingAuthorization(authzUrl))
   }
+}
+
+export async function issue (account, server) {
+  const csr = base64url(readFileSync('csr.der'))
+
+  console.log('Retrieving directory')
+  logResult(await server.directory)
+
+  console.log('Issuing certificate')
+  const certificate = await server.issue(csr)
+  logResult(certificate)
+}
+
+export async function retrieve (account, server, uri) {
+  console.log('Retrieving certificate from', uri)
+  logResult(await server.getCert(uri))
 }
