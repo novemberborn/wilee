@@ -2,14 +2,13 @@
   "name": "wile",
   "version": "0.0.0",
   "description": "ACME implementation",
-  "main": "index.js",
+  "bin": "cli-wrapper.js",
   "files": [
-    "index.js",
-    "index.js.map",
+    "cli-wrapper.js",
     "lib"
   ],
   "scripts": {
-    "clean": "rimraf index.js index.js.map lib",
+    "clean": "rimraf lib",
     "prebuild": "npm run clean",
     "build": "babel src --out-dir ./ --source-maps",
     "build:watch": "npm run build -- --watch",
@@ -47,7 +46,8 @@
     "jsonwebtoken": "^5.5.4",
     "parse-link-header": "^0.4.1",
     "pem-jwk": "^1.5.1",
-    "sixtyfour": "^1.0.1"
+    "sixtyfour": "^1.0.1",
+    "yargs": "^3.32.0"
   },
   "standard": {
     "parser": "babel-eslint"

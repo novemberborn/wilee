@@ -1,11 +1,7 @@
 import { createHash } from 'crypto'
-import { readFileSync } from 'fs'
 import { inspect } from 'util'
 
 import { urlencode as base64url } from 'sixtyfour'
-
-import Account from './lib/Account'
-import Server from './lib/Server'
 
 function logResult (result) {
   console.log(inspect(result, { depth: null }))
@@ -22,25 +18,22 @@ const mayContinue = () => {
   })
 }
 
-const account = new Account(readFileSync('account', 'ascii'), readFileSync('account.pub', 'ascii'))
-const staging = new Server('https://acme-staging.api.letsencrypt.org/directory', account)
-
-;(async function () {
+export async function authorize (account, server) {
   console.log('Retrieving directory')
-  logResult(await staging.directory)
+  logResult(await server.directory)
 
   console.log('Creating or retrieving registration')
-  const registration = await staging.register('mark@novemberborn.net')
+  const registration = await server.register('mark@novemberborn.net')
   logResult(registration)
 
   if (registration.payload.agreement !== registration.links['terms-of-service']) {
     console.log('Accepting terms of service')
-    logResult(await staging.acceptTermsOfService(registration.links.self, registration.links['terms-of-service']))
+    logResult(await server.acceptTermsOfService(registration.links.self, registration.links['terms-of-service']))
   }
 
   const domainName = 'novemberborn.net'
   console.log(`Authorizing for ${domainName}`)
-  const authz = await staging.authorizeIdentifier(domainName)
+  const authz = await server.authorizeIdentifier(domainName)
   logResult(authz)
 
   const {
@@ -66,12 +59,9 @@ Press ENTER to continue.`)
     await mayContinue()
 
     console.log('Meeting DNS challenge')
-    logResult(await staging.meetChallenge(uri, type, keyAuthorization))
+    logResult(await server.meetChallenge(uri, type, keyAuthorization))
 
     console.log('Waiting for status to change')
-    logResult(await staging.pollPendingAuthorization(authzUrl))
+    logResult(await server.pollPendingAuthorization(authzUrl))
   }
-})().catch((err) => {
-  console.error(err && err.stack || err)
-  process.exit(1)
-})
+}
