@@ -15,9 +15,9 @@ function extractLinks (headers) {
 }
 
 export default class Server {
-  constructor (root, sign) {
+  constructor (root, account) {
     this._root = root
-    this._sign = sign
+    this._account = account
 
     this._nonces = []
     this._directory = null
@@ -86,7 +86,7 @@ export default class Server {
             statusCode
           })
         })
-      }).end(this._sign({
+      }).end(this._account.sign({
         resource: 'new-reg',
         contact: [`mailto:${email}`]
       }, nonce))
@@ -124,7 +124,7 @@ export default class Server {
             statusCode
           })
         })
-      }).end(this._sign({ resource: 'reg' }, nonce))
+      }).end(this._account.sign({ resource: 'reg' }, nonce))
     })
   }
 
@@ -151,7 +151,7 @@ export default class Server {
             statusCode
           })
         })
-      }).end(this._sign({
+      }).end(this._account.sign({
         resource: 'reg',
         agreement: termsOfServiceUrl
       }, nonce))
@@ -181,7 +181,7 @@ export default class Server {
             statusCode
           })
         })
-      }).end(this._sign({
+      }).end(this._account.sign({
         resource: 'new-authz',
         identifier: { type: 'dns', value: domainName }
       }, nonce))
@@ -211,7 +211,7 @@ export default class Server {
             statusCode
           })
         })
-      }).end(this._sign({
+      }).end(this._account.sign({
         resource: 'challenge',
         type,
         keyAuthorization

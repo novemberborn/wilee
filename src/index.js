@@ -2,43 +2,15 @@ import { createHash } from 'crypto'
 import { readFileSync } from 'fs'
 import { inspect } from 'util'
 
-import jwt from 'jsonwebtoken'
-import { pem2jwk } from 'pem-jwk'
 import { urlencode as base64url } from 'sixtyfour'
 
+import Account from './lib/Account'
 import Server from './lib/Server'
 
 function logResult (result) {
   console.log(inspect(result, { depth: null }))
   console.log('\n')
 }
-
-const publicJwk = (function () {
-  const publicKey = readFileSync('account.pub', 'ascii')
-  const { e, kty, n } = pem2jwk(publicKey)
-  return { e, kty, n }
-})()
-
-const thumbprint = (function () {
-  const json = JSON.stringify(publicJwk)
-  const octets = new Buffer(json, 'utf8')
-  const hash = createHash('sha256').update(octets).digest()
-  return base64url(hash)
-})()
-
-const sign = (function () {
-  const privateKey = readFileSync('account', 'ascii')
-
-  return function sign (payload, nonce) {
-    return jwt.sign(payload, privateKey, {
-      algorithm: 'RS256',
-      headers: {
-        jwk: publicJwk,
-        nonce
-      }
-    })
-  }
-})()
 
 const mayContinue = () => {
   return new Promise((resolve) => {
@@ -50,7 +22,8 @@ const mayContinue = () => {
   })
 }
 
-const staging = new Server('https://acme-staging.api.letsencrypt.org/directory', sign)
+const account = new Account(readFileSync('account', 'ascii'), readFileSync('account.pub', 'ascii'))
+const staging = new Server('https://acme-staging.api.letsencrypt.org/directory', account)
 
 ;(async function () {
   console.log('Retrieving directory')
@@ -81,7 +54,7 @@ const staging = new Server('https://acme-staging.api.letsencrypt.org/directory',
   if (authzStatus === 'pending') {
     const { token, type, uri } = authzChallenges.find((c) => c.type === 'dns-01')
 
-    const keyAuthorization = `${token}.${thumbprint}`
+    const keyAuthorization = `${token}.${account.thumbprint}`
     const txtRecord = base64url(createHash('sha256').update(keyAuthorization, 'ascii').digest())
     console.log(`Please create a TXT record:
 
