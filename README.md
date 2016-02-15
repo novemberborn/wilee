@@ -8,11 +8,11 @@ openssl rsa -in account -pubout -out account.pub
 Generating the certificate private key:
 
 ```shell
-openssl genrsa -out cert.key 2048
+openssl genrsa -out key.pem 2048
 ```
 
 Generate the certificate signing request in DER form:
 
 ```shell
-openssl req -new -sha256 -key cert.key -outform der -out csr.der
+openssl req -new -sha256 -key key.pem -outform der -out csr.der
 ```

@@ -4,6 +4,6 @@ node_modules
 /account
 /account.pub
 /csr.der
-/cert.key
+/key.pem
 
 /lib
