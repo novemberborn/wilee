@@ -48,7 +48,7 @@
     "parse-link-header": "^0.4.1",
     "pem-jwk": "^1.5.1",
     "sixtyfour": "^1.0.1",
-    "yargs": "^3.32.0"
+    "yargs": "^4.0.0"
   },
   "standard": {
     "parser": "babel-eslint"

@@ -14,7 +14,7 @@ var argv = yargs
   .command('authorize', 'Authorize an identity')
   .command('issue', 'Issue a certificate')
   .command('retrieve', 'Retrieve a certificate by URI', (yargs) => {
-    argv = yargs
+    return yargs
       .usage('Usage: $0 retrieve <uri>')
       .help('help')
       .demand(1)
