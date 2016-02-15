@@ -1,5 +1,5 @@
 {
-  "name": "wile",
+  "name": "wilee",
   "version": "0.0.0",
   "description": "ACME implementation",
   "bin": "cli-wrapper.js",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/novemberborn/wile.git"
+    "url": "git+https://github.com/novemberborn/wilee.git"
   },
   "keywords": [
     "acme",
@@ -25,9 +25,9 @@
   "author": "Mark Wubben (https://novemberborn.net/)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/novemberborn/wile/issues"
+    "url": "https://github.com/novemberborn/wilee/issues"
   },
-  "homepage": "https://github.com/novemberborn/wile#readme",
+  "homepage": "https://github.com/novemberborn/wilee#readme",
   "devDependencies": {
     "babel": "^6.5.1",
     "babel-cli": "^6.5.1",
