@@ -1,8 +1,7 @@
 .node-version
 node_modules
 
-/account
-/account.pub
+/account.pem
 /csr.der
 /key.pem
 
