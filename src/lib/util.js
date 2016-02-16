@@ -1,9 +1,9 @@
-import { inspect } from 'util'
+import { inspect as nodeInspect } from 'util'
 
 import logUpdate from 'log-update'
 
-export function dumpPayload (payload) {
-  return inspect(payload, { depth: null })
+export function inspect (value) {
+  return nodeInspect(value, { depth: null })
 }
 
 export async function showPendingMessage (message, pending) {

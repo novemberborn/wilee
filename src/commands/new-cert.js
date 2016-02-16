@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 
 import { urlencode as base64url } from 'sixtyfour'
 
-import { dumpPayload } from '../lib/util'
+import { inspect } from '../lib/util'
 
 export default async function newCert (account, server, csrFile, outFile, notAfter, notBefore) {
   const csr = base64url(readFileSync(csrFile))
@@ -11,7 +11,7 @@ export default async function newCert (account, server, csrFile, outFile, notAft
   if (statusCode !== 200 && statusCode !== 201) {
     console.error(`Could not obtain the certificate.
 
-Server returned ${dumpPayload(payload)}`)
+Server returned ${inspect(payload)}`)
     return 1
   }
 

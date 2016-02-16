@@ -1,6 +1,6 @@
 import readline from 'readline'
 
-import { dumpPayload } from '../lib/util'
+import { inspect } from '../lib/util'
 
 export default async function newReg (account, server, email) {
   const {
@@ -13,7 +13,7 @@ export default async function newReg (account, server, email) {
   if (statusCode !== 200 && statusCode !== 201 && statusCode !== 202) {
     console.error(`Could not register account.
 
-Server returned ${dumpPayload(payload)}`)
+Server returned ${inspect(payload)}`)
     return 1
   }
 
@@ -23,7 +23,7 @@ Server returned ${dumpPayload(payload)}`)
     if (statusCode !== 200 && statusCode !== 202) {
       console.error(`Failed to agree to the Terms of Service.
 
-Server returned ${dumpPayload(payload)}`)
+Server returned ${inspect(payload)}`)
       return 1
     }
   }

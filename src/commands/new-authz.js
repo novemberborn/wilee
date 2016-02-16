@@ -3,7 +3,7 @@ import { resolveTxt } from 'dns'
 
 import { urlencode as base64url } from 'sixtyfour'
 
-import { dumpPayload, showPendingMessage } from '../lib/util'
+import { inspect, showPendingMessage } from '../lib/util'
 
 export default async function newAuthz (account, server, domainName) {
   const {
@@ -19,7 +19,7 @@ export default async function newAuthz (account, server, domainName) {
   if (statusCode !== 201) {
     console.error(`Could not create an authorization for ${domainName}
 
-Server returned ${dumpPayload(payload)}`)
+Server returned ${inspect(payload)}`)
     return 1
   }
 
@@ -42,7 +42,7 @@ Received ${received} but only 'dns-01' is supported.`)
     if (!ok) {
       console.error(`Failed to meet DNS challenge for ${domainName}
 
-Server returned ${dumpPayload(err)}`)
+Server returned ${inspect(err)}`)
       return 1
     }
   }
