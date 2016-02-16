@@ -1,4 +1,3 @@
-#! /usr/bin/env node
 import { readFileSync } from 'fs'
 import { normalize } from 'path'
 import { inspect } from 'util'
