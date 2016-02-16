@@ -7,7 +7,7 @@ import yargs from 'yargs'
 
 import Account from './Account'
 import { newReg, newAuthz, newCert } from 'glob:../commands/*.js'
-import Server from './Server'
+import Client from './Client'
 
 const stagingUri = 'https://acme-staging.api.letsencrypt.org/directory'
 
@@ -45,7 +45,7 @@ Provide the email address you wish the ACME server to contact you on if necessar
         .group(['account', 'directory'], 'Global options:') // FIXME needing to repeat this seems to be a yargs bug
     },
     (argv) => {
-      argv.run = (account, server) => newReg(account, server, argv.email)
+      argv.run = (account, client) => newReg(account, client, argv.email)
     }
   )
   .command(
@@ -59,7 +59,7 @@ Pass the domain name you wish to authorize your account for.`)
         .group(['account', 'directory'], 'Global options:') // FIXME needing to repeat this seems to be a yargs bug
     },
     (argv) => {
-      argv.run = (account, server) => newAuthz(account, server, argv.domain)
+      argv.run = (account, client) => newAuthz(account, client, argv.domain)
     }
   )
   .command(
@@ -103,7 +103,7 @@ the certificate. Other restrictions may apply, depending on the ACME server.
       .example('$0 --acount=private.pem new-cert csr.der -o cert.der')
     },
     (argv) => {
-      argv.run = (account, server) => newCert(account, server, normalize(argv.csr), argv.out, argv['not-after'], argv['not-before'])
+      argv.run = (account, client) => newCert(account, client, normalize(argv.csr), argv.out, argv['not-after'], argv['not-before'])
     }
   )
   .demand(1)
@@ -118,9 +118,9 @@ NOTICE: Using the staging server provided by Letsencrypt.
 }
 
 const account = new Account(readFileSync(argv.account, 'ascii'))
-const server = new Server(argv.directory, account)
+const client = new Client(account, argv.directory)
 
-argv.run(account, server).catch((err) => {
+argv.run(account, client).catch((err) => {
   console.error(err && err.stack || err)
   for (const k in err) {
     console.error(`${k}: ${inspect(err[k])}`)

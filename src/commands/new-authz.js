@@ -5,21 +5,21 @@ import { urlencode as base64url } from 'sixtyfour'
 
 import { inspect, showPendingMessage } from '../lib/util'
 
-export default async function newAuthz (account, server, domainName) {
+export default async function newAuthz (account, client, domainName) {
   const {
     statusCode,
     links: { self: authzUri },
-    payload,
-    payload: {
+    body,
+    body: {
       status,
       challenges
     }
-  } = await server.authorizeIdentifier(domainName)
+  } = await client.newAuthz(domainName)
 
   if (statusCode !== 201) {
     console.error(`Could not create an authorization for ${domainName}
 
-Server returned ${inspect(payload)}`)
+Server returned ${inspect(body)}`)
     return 1
   }
 
@@ -34,7 +34,7 @@ Received ${received} but only 'dns-01' is supported.`)
 
     const [ok, err] = await meetDnsChallenge({
       account,
-      server,
+      client,
       domainName,
       authzUri,
       dnsChallenge
@@ -52,7 +52,7 @@ Server returned ${inspect(err)}`)
 
 async function meetDnsChallenge ({
   account: { thumbprint },
-  server,
+  client,
   domainName,
   authzUri,
   dnsChallenge: { token, type, uri }
@@ -69,17 +69,17 @@ async function meetDnsChallenge ({
   await showPendingMessage('Checking DNS records', pollDns(hostname, record))
 
   {
-    const { statusCode, payload } = await server.meetChallenge(uri, type, keyAuthorization)
+    const { statusCode, body } = await client.challenge(uri, type, keyAuthorization)
     if (statusCode !== 202) {
-      return [false, payload]
+      return [false, body]
     }
   }
 
   {
-    const verifying = server.pollPendingAuthorization(authzUri)
-    const { statusCode, payload } = await showPendingMessage('Waiting for ACME server to verify DNS records', verifying)
+    const verifying = client.pollPendingAuthz(authzUri)
+    const { statusCode, body } = await showPendingMessage('Waiting for ACME server to verify DNS records', verifying)
     if (statusCode !== 200) {
-      return [false, payload]
+      return [false, body]
     }
   }
 

@@ -2,28 +2,28 @@ import readline from 'readline'
 
 import { inspect } from '../lib/util'
 
-export default async function newReg (account, server, email) {
+export default async function newReg (account, client, email) {
   const {
     statusCode,
     links: { self: regUri, 'terms-of-service': tosUri },
-    payload,
-    payload: { agreement }
-  } = await server.register(email)
+    body,
+    body: { agreement }
+  } = await client.newReg(email)
 
   if (statusCode !== 200 && statusCode !== 201 && statusCode !== 202) {
     console.error(`Could not register account.
 
-Server returned ${inspect(payload)}`)
+Server returned ${inspect(body)}`)
     return 1
   }
 
   if (agreement !== tosUri) {
     await requireTosAgreement(tosUri)
-    const { statusCode, payload } = await server.acceptTermsOfService(regUri, tosUri)
+    const { statusCode, body } = await client.updateRegAgreement(regUri, tosUri)
     if (statusCode !== 200 && statusCode !== 202) {
       console.error(`Failed to agree to the Terms of Service.
 
-Server returned ${inspect(payload)}`)
+Server returned ${inspect(body)}`)
       return 1
     }
   }
