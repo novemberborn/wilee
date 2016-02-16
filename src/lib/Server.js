@@ -93,12 +93,7 @@ export default class Server {
       }, nonce))
     }).then((result) => {
       const { statusCode, links: { self } } = result
-
-      if (statusCode === 201) {
-        return result
-      } else if (statusCode === 409) {
-        return this.getRegistration(self)
-      }
+      return statusCode === 409 ? this.getRegistration(self) : result
     })
   }
 
@@ -242,15 +237,18 @@ export default class Server {
         })
       }).end()
     }).then((result) => {
-      if (result.payload.status !== 'pending') return result
+      const { statusCode, payload: { status } } = result
+      if (statusCode === 202 && status === 'pending') {
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(), 5000)
+        }).then(() => this.pollPendingAuthorization(authzUrl))
+      }
 
-      return new Promise((resolve) => {
-        setTimeout(() => resolve(), 10000)
-      }).then(() => this.pollPendingAuthorization(authzUrl))
+      return result
     })
   }
 
-  async issue (csr, notAfter = utc().add(90, 'days'), notBefore = utc()) {
+  async issue (csr, notAfter = utc().add(90, 'days').format(), notBefore = utc().format()) {
     const { hostname, port, path } = parseUrl((await this.directory)['new-cert'])
 
     const nonce = await this.nonce
@@ -277,43 +275,12 @@ export default class Server {
       }).end(this._account.sign({
         resource: 'new-cert',
         csr,
-        notBefore: utc(notBefore).format(),
-        notAfter: utc(notAfter).format()
+        notBefore: utc(notBefore),
+        notAfter: utc(notAfter)
       }, nonce))
     }).then((result) => {
       const { statusCode } = result
       if (statusCode === 201) return result
-
-      throw Object.assign(new Error('Could not issue certificate'), result)
-    })
-  }
-
-  async getCert (certUrl) {
-    const { hostname, port, path } = parseUrl(certUrl)
-    return new Promise((resolve, reject) => {
-      request({
-        method: 'GET',
-        hostname,
-        port,
-        path,
-        headers: { 'content-type': 'application/pkix-cert' }
-      }).on('error', reject).on('response', (res) => {
-        const { statusCode, headers } = res
-        const links = extractLinks(headers)
-        links.self = certUrl
-
-        const encoding = headers['content-type'] === 'application/pkix-cert' ? 'base64' : 'utf8'
-        return getStream(res, { encoding }).then((payload) => {
-          resolve({
-            links,
-            payload,
-            statusCode
-          })
-        })
-      }).end()
-    }).then((result) => {
-      const { statusCode } = result
-      if (statusCode === 200) return result
 
       throw Object.assign(new Error('Could not issue certificate'), result)
     })

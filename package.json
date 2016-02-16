@@ -4,10 +4,11 @@
   "description": "ACME implementation",
   "bin": "bin/wilee.js",
   "files": [
+    "commands",
     "lib"
   ],
   "scripts": {
-    "clean": "rimraf lib",
+    "clean": "rimraf commands lib",
     "prebuild": "npm run clean",
     "build": "babel src --out-dir ./ --source-maps",
     "build:watch": "npm run build -- --watch",
@@ -31,6 +32,7 @@
     "babel": "^6.5.1",
     "babel-cli": "^6.5.1",
     "babel-eslint": "^4.1.8",
+    "babel-plugin-import-glob": "^1.0.1",
     "babel-plugin-transform-async-to-generator": "^6.5.0",
     "babel-plugin-transform-es2015-destructuring": "^6.5.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.5.0",
@@ -43,6 +45,7 @@
   "dependencies": {
     "get-stream": "^1.1.0",
     "jsonwebtoken": "^5.5.4",
+    "log-update": "^1.0.2",
     "moment": "^2.11.2",
     "parse-link-header": "^0.4.1",
     "pem-jwk": "^1.5.1",
