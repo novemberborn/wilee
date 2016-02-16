@@ -11,8 +11,8 @@ export default async function newAuthz (account, server, domainName) {
     links: { self: authzUri },
     payload,
     payload: {
-      status: authzStatus,
-      challenges: authzChallenges
+      status,
+      challenges
     }
   } = await server.authorizeIdentifier(domainName)
 
@@ -23,10 +23,10 @@ Server returned ${inspect(payload)}`)
     return 1
   }
 
-  if (authzStatus === 'pending') {
-    const dnsChallenge = authzChallenges.find((c) => c.type === 'dns-01')
+  if (status === 'pending') {
+    const dnsChallenge = challenges.find((c) => c.type === 'dns-01')
     if (!dnsChallenge) {
-      const received = authzChallenges.map((c) => `'${c.type}'`).join(', ')
+      const received = challenges.map((c) => `'${c.type}'`).join(', ')
       console.error(`Server did not issue a supported challenge.
 Received ${received} but only 'dns-01' is supported.`)
       return 1
