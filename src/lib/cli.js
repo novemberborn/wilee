@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import { normalize } from 'path'
-import { inspect } from 'util'
+import { inspect } from './util'
 
 import moment from 'moment'
 import yargs from 'yargs'
@@ -122,9 +122,8 @@ const server = new Server(argv.directory, account)
 
 argv.run(account, server).catch((err) => {
   console.error(err && err.stack || err)
-  const keys = Object.keys(err)
-  for (const k of keys) {
-    console.error(`${k}: ${inspect(err[k], { depth: null })}`)
+  for (const k in err) {
+    console.error(`${k}: ${inspect(err[k])}`)
   }
   return 1
 }).then((code = 0) => process.exit(code))
