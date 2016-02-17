@@ -92,7 +92,11 @@ async function pollDns (hostname, expected) {
   const exists = await new Promise((resolve, reject) => {
     resolveTxt(hostname, (err, records) => {
       if (err) {
-        reject(err)
+        if (err.code === 'ENOTFOUND') {
+          resolve(false)
+        } else {
+          reject(err)
+        }
       } else {
         resolve(records.some((chunks) => chunks.indexOf(expected) !== -1))
       }
