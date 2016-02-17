@@ -1,9 +1,5 @@
 .node-version
 node_modules
 
-/account.pem
-/csr.der
-/key.pem
-
 /commands
 /lib
