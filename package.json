@@ -4,6 +4,7 @@
   "description": "Command line tool for interacting with ACME servers",
   "bin": "bin/wilee.js",
   "files": [
+    "bin",
     "commands",
     "lib"
   ],
@@ -12,6 +13,7 @@
     "prebuild": "npm run clean",
     "build": "babel src --out-dir ./ --source-maps",
     "build:watch": "npm run build -- --watch",
+    "prepublish": "npm run build",
     "test": "standard"
   },
   "repository": {
