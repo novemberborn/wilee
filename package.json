@@ -43,6 +43,7 @@
     "standard": "^6.0.4"
   },
   "dependencies": {
+    "content-type": "^1.0.1",
     "get-stream": "^1.1.0",
     "jsonwebtoken": "^5.5.4",
     "log-update": "^1.0.2",

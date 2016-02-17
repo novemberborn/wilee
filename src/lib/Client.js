@@ -4,6 +4,7 @@ import { parse as parseUri } from 'url'
 import getStream from 'get-stream'
 import { utc } from 'moment'
 import parseLinkHeader from 'parse-link-header'
+import { parse as parseContentType } from 'content-type'
 
 export default class Client {
   constructor (account, directoryUri) {
@@ -19,14 +20,7 @@ export default class Client {
       return Promise.resolve(this._nonces.shift())
     }
 
-    const { hostname, port, path } = parseUri(this._directoryUri)
-    const { nonce } = await request({
-      method: 'HEAD',
-      hostname,
-      port,
-      path,
-      as: null
-    }).end()
+    const [nonce] = await request('HEAD', this._directoryUri)
     return nonce
   }
 
@@ -41,14 +35,7 @@ export default class Client {
       return Promise.resolve(this._knownEndpoints.get(resource))
     }
 
-    const { hostname, port, path } = parseUri(this._directoryUri)
-    const { body, nonce, statusCode } = await request({
-      method: 'GET',
-      hostname,
-      port,
-      path
-    }).end()
-
+    const [nonce, { body, statusCode }] = await request('GET', this._directoryUri)
     this._captureNonce(nonce)
 
     if (statusCode !== 200) {
@@ -56,9 +43,7 @@ export default class Client {
     }
 
     for (const resource in body) {
-      const uri = body[resource]
-      const { hostname, port, path } = parseUri(uri)
-      this._knownEndpoints.set(resource, Object.freeze({ hostname, port, path, uri }))
+      this._knownEndpoints.set(resource, body[resource])
     }
 
     if (!this._knownEndpoints.has(resource)) {
@@ -69,176 +54,102 @@ export default class Client {
   }
 
   async newReg (email) {
-    const { hostname, port, path } = await this._discoverEndpoint('new-reg')
-
-    const { body, links, nonce, statusCode } = await request({
-      method: 'POST',
-      hostname,
-      port,
-      path
-    }).end(this._account.sign({
-      resource: 'new-reg',
-      contact: [`mailto:${email}`]
-    }, await this._getNonce()))
-
+    const [nonce, result] = await request('POST', await this._discoverEndpoint('new-reg'), {
+      jws: this._account.sign({
+        resource: 'new-reg',
+        contact: [`mailto:${email}`]
+      }, await this._getNonce())
+    })
     this._captureNonce(nonce)
 
-    if (statusCode === 409) {
-      return this.reg(links.self)
+    if (result.statusCode === 409) {
+      return this.reg(result.links.self)
     }
 
-    return {
-      body,
-      links,
-      statusCode
-    }
+    return result
   }
 
   async reg (uri) {
-    const { hostname, port, path } = parseUri(uri)
-
-    const { body, links, nonce, statusCode } = await request({
-      method: 'POST',
-      hostname,
-      port,
-      path
-    }).end(this._account.sign({
-      resource: 'reg'
-    }, await this._getNonce()))
-
+    const [nonce, result] = await request('POST', uri, {
+      jws: this._account.sign({
+        resource: 'reg'
+      }, await this._getNonce())
+    })
     this._captureNonce(nonce)
 
-    links.self = uri
-    return {
-      body,
-      links,
-      statusCode
-    }
+    result.links.self = uri
+    return result
   }
 
   async updateRegAgreement (regUri, agreement) {
-    const { hostname, port, path } = parseUri(regUri)
-
-    const { body, links, nonce, statusCode } = await request({
-      method: 'POST',
-      hostname,
-      port,
-      path
-    }).end(this._account.sign({
-      resource: 'reg',
-      agreement
-    }, await this._getNonce()))
-
+    const [nonce, result] = await request('POST', regUri, {
+      jws: this._account.sign({
+        resource: 'reg',
+        agreement
+      }, await this._getNonce())
+    })
     this._captureNonce(nonce)
 
-    links.self = regUri
-    return {
-      body,
-      links,
-      statusCode
-    }
+    result.links.self = regUri
+    return result
   }
 
   async newAuthz (domainName) {
-    const { hostname, port, path } = await this._discoverEndpoint('new-authz')
-
-    const { body, links, nonce, statusCode } = await request({
-      method: 'POST',
-      hostname,
-      port,
-      path
-    }).end(this._account.sign({
-      resource: 'new-authz',
-      identifier: {
-        type: 'dns',
-        value: domainName
-      }
-    }, await this._getNonce()))
-
+    const [nonce, result] = await request('POST', await this._discoverEndpoint('new-authz'), {
+      jws: this._account.sign({
+        resource: 'new-authz',
+        identifier: {
+          type: 'dns',
+          value: domainName
+        }
+      }, await this._getNonce())
+    })
     this._captureNonce(nonce)
 
-    return {
-      links,
-      body,
-      statusCode
-    }
+    return result
   }
 
   async challenge (uri, type, keyAuthorization) {
-    const { hostname, port, path } = parseUri(uri)
-
-    const { body, links, nonce, statusCode } = await request({
-      method: 'POST',
-      hostname,
-      port,
-      path
-    }).end(this._account.sign({
-      resource: 'challenge',
-      type,
-      keyAuthorization
-    }, await this._getNonce()))
-
+    const [nonce, result] = await request('POST', uri, {
+      jws: this._account.sign({
+        resource: 'challenge',
+        type,
+        keyAuthorization
+      }, await this._getNonce())
+    })
     this._captureNonce(nonce)
 
-    links.self = uri
-    return {
-      links,
-      body,
-      statusCode
-    }
+    result.links.self = uri
+    return result
   }
 
   async pollPendingAuthz (uri, defaultRetryAfter = 5000) {
-    const { hostname, port, path } = parseUri(uri)
+    const [, result] = await request('GET', uri)
 
-    const { body, headers, links, statusCode } = await request({
-      method: 'GET',
-      hostname,
-      port,
-      path
-    }).end()
-
-    links.self = uri
-
+    const { body, retryAfter, statusCode } = result
     if (statusCode === 202 && body.status === 'pending') {
-      const retryAfter = parseInt(headers['retry-after']) || defaultRetryAfter
       await new Promise((resolve) => {
-        setTimeout(resolve, retryAfter)
+        setTimeout(resolve, retryAfter || defaultRetryAfter)
       })
       return this.pollPendingAuthz(uri, defaultRetryAfter)
     }
 
-    return {
-      body,
-      links,
-      statusCode
-    }
+    result.links.self = uri
+    return result
   }
 
   async newCert (csr, notAfter = utc().add(90, 'days').format(), notBefore = utc().format()) {
-    const { hostname, port, path } = await this._discoverEndpoint('new-cert')
+    const [, result] = await request('POST', await this._discoverEndpoint('new-cert'), {
+      accept: 'application/pkix-cert',
+      jws: this._account.sign({
+        resource: 'new-cert',
+        csr,
+        notBefore,
+        notAfter
+      }, await this._getNonce())
+    })
 
-    const { body, links, statusCode } = await request({
-      method: 'POST',
-      hostname,
-      port,
-      path,
-      headers: { 'accept': 'application/pkix-cert' },
-      as (res) {
-        return res.headers['content-type'] === 'application/pkix-cert' ? 'buffer' : 'json'
-      }
-    }).end(this._account.sign({
-      resource: 'new-cert',
-      csr,
-      notBefore,
-      notAfter
-    }, await this._getNonce()))
-
-    return {
-      body,
-      links,
-      statusCode
-    }
+    return result
   }
 }
 
@@ -257,57 +168,50 @@ function extractLinks ({ link, location }) {
   }, result)
 }
 
-function request ({
-  method,
-  hostname,
-  port,
-  path,
-  headers,
-  as = 'json'
-}) {
-  let req = null
-  const promise = new Promise((resolve, reject) => {
-    req = https.request({ method, hostname, port, path, headers })
+function getBody (res) {
+  const { type } = parseContentType(res.headers['content-type'])
+  if (type === 'application/json' || type === 'application/problem+json') {
+    return getStream(res, 'utf8').then(JSON.parse)
+  } else if (type === 'application/pkix-cert') {
+    return getStream.buffer(res)
+  } else {
+    return getStream(res, 'utf8')
+  }
+}
+
+async function request (method, uri, {
+  jws,
+  accept = 'application/json'
+} = {}) {
+  const res = await new Promise((resolve, reject) => {
+    const { hostname, port, path } = parseUri(uri)
+    const headers = { accept }
+    if (jws) {
+      headers['content-type'] = 'application/jose'
+    }
+
+    https.request({ method, hostname, port, path, headers })
       .on('error', reject)
-      .on('response', (res) => {
-        const {
-          headers,
-          headers: {
-            'replay-nonce': nonce
-          },
-          statusCode
-        } = res
-        const links = extractLinks(headers)
-
-        let fetchingBody = null
-        switch (typeof as === 'function' ? as(res) : as) {
-          case 'json':
-            fetchingBody = getStream(res, 'utf8').then(JSON.parse)
-            break
-          case 'buffer':
-            fetchingBody = getStream.buffer(res)
-            break
-          default:
-            fetchingBody = Promise.resolve(null)
-        }
-
-        resolve(fetchingBody.then((body) => {
-          return {
-            body,
-            headers,
-            links,
-            nonce,
-            raw: res,
-            statusCode
-          }
-        }))
-      })
+      .on('response', resolve)
+      .end(jws)
   })
 
-  return {
-    end (requestBody) {
-      req.end(requestBody)
-      return promise
-    }
-  }
+  const {
+    headers,
+    headers: {
+      'replay-nonce': nonce
+    },
+    statusCode
+  } = res
+
+  const body = await getBody(res)
+  const links = extractLinks(headers)
+  const retryAfter = parseInt(headers['retry-after']) || null
+
+  return [nonce, {
+    body,
+    links,
+    retryAfter,
+    statusCode
+  }]
 }
