@@ -38,7 +38,7 @@ var argv = yargs.usage('Usage: $0 [global options] <command> [options]')
     'new-reg <email>',
     'Create a new registration for the account key',
     (yargs) => {
-      return yargs.usage(`Usage: $0 [global options] new-reg <email>
+      return yargs.usage(`Usage: $0 [global options] new-reg <email> [options]
 
 Provide the email address you wish the ACME server to contact you on if necessary.`)
         .example('$0 --account account.pem new-reg example@example.com', 'Register your account with example@example.com as the contact address')
@@ -52,7 +52,7 @@ Provide the email address you wish the ACME server to contact you on if necessar
     'new-authz <domain>',
     'Authorize a domain name identifier',
     (yargs) => {
-      return yargs.usage(`Usage: $0 [global options] new-authz <domain>
+      return yargs.usage(`Usage: $0 [global options] new-authz <domain> [options]
 
 Pass the domain name you wish to authorize your account for.`)
         .example('$0 --account account.pem new-authz example.com', 'Authorize your account for example.com')

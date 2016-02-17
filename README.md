@@ -24,8 +24,7 @@ wilee --help
 ```
 
 ```
-Usage: wilee [global options] <command>
-[options]
+Usage: wilee [global options] <command> [options]
 
 Commands:
   new-reg <email>     Create a new registration for the account key
@@ -97,7 +96,7 @@ wilee new-reg --help
 ```
 
 ```
-Usage: wilee [global options] new-reg <email>
+Usage: wilee [global options] new-reg <email> [options]
 
 Provide the email address you wish the ACME server to contact you on if
 necessary.
@@ -130,7 +129,7 @@ wilee new-authz --help
 ```
 
 ```
-Usage: wilee [global options] new-authz <domain>
+Usage: wilee [global options] new-authz <domain> [options]
 
 Pass the domain name you wish to authorize your account for.
 
