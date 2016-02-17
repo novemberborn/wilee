@@ -223,7 +223,7 @@ export default class Client {
       hostname,
       port,
       path,
-      headers: { 'content-type': 'application/pkix-cert' },
+      headers: { 'accept': 'application/pkix-cert' },
       as (res) {
         return res.headers['content-type'] === 'application/pkix-cert' ? 'buffer' : 'json'
       }
