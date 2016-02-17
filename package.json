@@ -1,6 +1,6 @@
 {
   "name": "wilee",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Command line tool for interacting with ACME servers",
   "bin": "bin/wilee.js",
   "files": [
