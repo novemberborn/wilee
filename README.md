@@ -53,7 +53,7 @@ You'll need to specify which ACME server you wish to use. By default this is
 server](https://community.letsencrypt.org/t/testing-against-the-lets-encrypt-staging-environment/6763)
 which does not issue valid certificates.
 
-Specify `--directory=https://acme-v01.api.letsencrypt.org/directory` to use
+Specify `--directory https://acme-v01.api.letsencrypt.org/directory` to use
 [Let's Encrypt's](https://letsencrypt.org/) production server. Note that [rate
 limits](https://community.letsencrypt.org/t/rate-limits-for-lets-encrypt/6769)
 apply, so it's recommended you try with the staging server first.
@@ -112,7 +112,7 @@ Options:
   --help  Show help                                                    [boolean]
 
 Examples:
-  wilee --account=account.pem new-reg       Register your account with
+  wilee --account account.pem new-reg       Register your account with
   example@example.com                       example@example.com as the contact
                                             address
 ```
@@ -144,7 +144,7 @@ Options:
   --help  Show help                                                    [boolean]
 
 Examples:
-  wilee --account=account.pem new-authz     Authorize your account for
+  wilee --account account.pem new-authz     Authorize your account for
   example.com                               example.com
 ```
 
@@ -190,7 +190,7 @@ Options:
                                                                         [string]
 
 Examples:
-  wilee --account=account.pem new-cert
+  wilee --account account.pem new-cert
   csr.der -o cert.der
 ```
 
