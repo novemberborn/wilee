@@ -42,7 +42,6 @@ var argv = yargs.usage('Usage: $0 [global options] <command> [options]')
 
 Provide the email address you wish the ACME server to contact you on if necessary.`)
         .example('$0 --account account.pem new-reg example@example.com', 'Register your account with example@example.com as the contact address')
-        .group(['account', 'directory'], 'Global options:') // FIXME needing to repeat this seems to be a yargs bug
     },
     (argv) => {
       argv.run = (account, client) => newReg(account, client, argv.email)
@@ -56,7 +55,6 @@ Provide the email address you wish the ACME server to contact you on if necessar
 
 Pass the domain name you wish to authorize your account for.`)
         .example('$0 --account account.pem new-authz example.com', 'Authorize your account for example.com')
-        .group(['account', 'directory'], 'Global options:') // FIXME needing to repeat this seems to be a yargs bug
     },
     (argv) => {
       argv.run = (account, client) => newAuthz(account, client, argv.domain)
@@ -76,7 +74,6 @@ Your account must have previously been authorized for the domains included in
 the certificate. Other restrictions may apply, depending on the ACME server.
 
 --not-before and --not-after may be ignored by ACME servers.`)
-      .group(['account', 'directory'], 'Global options:') // FIXME needing to repeat this seems to be a yargs bug
       .options({
         'not-before': {
           default: now.format(),
