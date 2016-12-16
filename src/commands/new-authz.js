@@ -94,6 +94,8 @@ async function pollDns (hostname, expected) {
       if (err) {
         if (err.code === 'ENOTFOUND') {
           resolve(false)
+        } else if (err.code === 'ENODATA') {
+          resolve(false)
         } else {
           reject(err)
         }
